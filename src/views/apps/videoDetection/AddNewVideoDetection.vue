@@ -25,6 +25,7 @@ const refForm = ref()
 
 const isAddVideoForDetection = ref(false)
 
+const statusVideoSelect = ref(false)
 const videoDetections = ref()
 const listIAModels = ref([])
 const resultVideoDetection = ref()
@@ -69,7 +70,6 @@ const getSelectVideoDetection = data => {
 }
 
 const createNewVideoDetection = async data => {
-  console.log('hola mundo', data, videoDetections.value.ia_model.id)
   try {
     if (data) {
 
@@ -139,35 +139,9 @@ const handleFileChange = event => {
   const file = event.target.files[0]
   if (file) {
     console.log('Archivo seleccionado:', file)
+    statusVideoSelect.value = true
   }
 }
-
-// const getDataResultVideoCamara = async dataCamera => {
-//   if (dataCamera) {
-//     console.log('dataCameradataCameradataCamera',dataCamera)
-    
-
-//     let response = await videoDetectionsApi.post(dataCamera)
-
-//     resultVideo.value = response
-
-//     emit('videoDetectionData', resultVideo.value)
-    
-//   }
-// }
-
-
-// watchEffect(() => {
-//   getDataResultVideoCamara()
-
-//   if (resultVideoDetection.value) {
-//     emit('videoDetectionData', resultVideoDetection.value)
-//   }
-
-//   // if (resultVideo.value) {
-    
-//   // }
-// })
 </script>
 
 <template>
@@ -205,9 +179,28 @@ const handleFileChange = event => {
             style="display: none;"
             @change="handleFileChange"
           />
+          
+          <div v-if="statusVideoSelect">
+            <VBtn
+              type="submit"
+              class="me-2 mt-3"
+              :disabled="loadingSaveVideoDetection"
+              :loading="loadingSaveVideoDetection"
+            >
+              Save
+            </VBtn>
+
+            <VBtn
+              class="mt-3"
+              variant="tonal"
+              color="secondary"
+            >
+              Reset
+            </VBtn>
+          </div>
         </div>
       </VCol>
-           
+
       <VCol cols="12">
         <div class="border rounded pa-4">
           <VideoCamara
@@ -215,28 +208,6 @@ const handleFileChange = event => {
             @video-data-camara="createNewVideoDetection"
           />
         </div>
-      </VCol>
-
-      
-      <VCol
-        cols="12"
-        class="text-center"
-      >
-        <VBtn
-          type="submit"
-          class="me-3"
-          :disabled="loadingSaveVideoDetection"
-          :loading="loadingSaveVideoDetection"
-        >
-          Save
-        </VBtn>
-
-        <VBtn
-          variant="tonal"
-          color="secondary"
-        >
-          Reset
-        </VBtn>
       </VCol>
     </VRow>
   </VForm>
