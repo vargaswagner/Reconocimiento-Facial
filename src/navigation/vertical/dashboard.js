@@ -24,4 +24,9 @@ export default [
     icon: { icon: 'tabler-smart-home' },
     to: 'dashboards-home',
   },
+  {
+    title: 'Archivos',
+    icon: { icon: 'tabler-books' },
+    to: 'apps-archivos-videos',
+  },
 ]

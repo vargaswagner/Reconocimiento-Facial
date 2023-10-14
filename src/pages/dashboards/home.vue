@@ -2,6 +2,7 @@
 import { useTheme } from 'vuetify'
 import AnalyticsSalesByCountries from '@/views/dashboards/analytics/AnalyticsSalesByCountries.vue'
 import AddNewWorkEnvironments from '@/views/apps/workEnvironments/AddNewWorkEnvironments.vue'
+import AddNewVideo from '@/views/apps/archivos/videos/AddNewVideo.vue'
 
 import auFlag from '@/assets/images/icons/countries/au.png'
 import brFlag from '@/assets/images/icons/countries/br.png'
@@ -11,6 +12,7 @@ import inFlag from '@/assets/images/icons/countries/in.png'
 import usFlag from '@/assets/images/icons/countries/us.png'
 
 import workEnvironmentsApi from '@/services/models/workEnvironments'
+import videosApi from '@/services/models/videos'
 
 const salesByCountries = [
   {
@@ -130,9 +132,34 @@ const saveWorkEnvironments = async environmentsData => {
   }
 }
 
+const saveNewVideo = async data => {
+  for (const [key, value] of data.entries()) {
+    console.log(`Campo: ${key}, Valor: ${value}`)
+  }
+  console.log('datadatadatadata', data)
+
+  try {
+    let response = await videosApi.post(data)
+
+    isAddNewVideo.value = false 
+
+    console.log('responseresponseresponse', response)
+  } catch (err) {
+    console.log(err)
+  }
+}
+
 const openDialogAddNewWorkEnvironments = () => {
   resertErrorsWorkEnvironments()
   isAddNewWorkEnvironments.value = true
+}
+
+const isAddNewVideo = ref(false)
+
+const openDialogAddNewVideos = data => {
+  // resertErrorsWorkEnvironments()
+  workEnvironmentsSelected.value = data
+  isAddNewVideo.value = true
 }
 
 const workEnvironmentsSelectedEvent = environments => {
@@ -174,7 +201,6 @@ const deleteWorkEnvironments = async confirm => {
           <!-- 👉 Sales by Countries -->
           <VCol
             cols="12"
-            lg="4"
             class="text-right"
           >
             <VBtn
@@ -188,7 +214,6 @@ const deleteWorkEnvironments = async confirm => {
             v-for="environments in listaWorkEnvironments"
             :key="environments"
             cols="12"
-            sm="6"
             lg="4"
           >
             <VCard
@@ -212,11 +237,13 @@ const deleteWorkEnvironments = async confirm => {
                     <VMenu activator="parent">
                       <VList>
                         <VListItem
-                          v-for="(item, index) in ['Editar', 'Delete']"
+                          v-for="(item, index) in ['Agregar Video','Editar', 'Delete']"
                           :key="index"
                           :value="index"
                         >
-                          <VListItemTitle>{{ item }}</VListItemTitle>
+                          <VListItemTitle>
+                            <span @click="item === 'Agregar Video' ? openDialogAddNewVideos(environments) : null">{{ item }}</span>
+                          </VListItemTitle>
                         </VListItem>
                       </VList>
                     </VMenu>
@@ -224,46 +251,56 @@ const deleteWorkEnvironments = async confirm => {
                 </div>
               </template>
 
-              <VCardText>
-                <VList class="card-list">
-                  <VListItem
-                    v-for="country in salesByCountries"
-                    :key="country.stats"
-                  >
-                    <template #prepend>
-                      <VAvatar
-                        size="34"
-                        color="secondary"
-                        variant="tonal"
-                        :image="country.avatarImg"
-                      />
-                    </template>
-
-                    <VListItemTitle class="font-weight-semibold">
-                      {{ country.stats }}
-                    </VListItemTitle>
-                    <VListItemSubtitle>
-                      {{ country.subtitle }}
-                    </VListItemSubtitle>
-
-                    <template #append>
-                      <div :class="`d-flex align-center font-weight-semibold ${country.profitLoss > 0 ? 'text-success' : 'text-error'}`">
-                        <VIcon
-                          :icon="country.profitLoss > 0 ? 'tabler-chevron-up' : 'tabler-chevron-down'"
-                          size="18"
-                          class="me-1"
+              <RouterLink
+                :to="{ name: 'apps-archivos-id', params: { id: environments.id } }"
+              >
+                <VCardText>
+                  <VList class="card-list">
+                    <VListItem
+                      v-for="country in salesByCountries"
+                      :key="country.stats"
+                    >
+                      <template #prepend>
+                        <VAvatar
+                          size="34"
+                          color="secondary"
+                          variant="tonal"
+                          :image="country.avatarImg"
                         />
-                        <span>{{ Math.abs(country.profitLoss) }}%</span>
-                      </div>
-                    </template>
-                  </VListItem>
-                </VList>
-              </VCardText>
+                      </template>
+
+                      <VListItemTitle class="font-weight-semibold">
+                        {{ country.stats }}
+                      </VListItemTitle>
+                      <VListItemSubtitle>
+                        {{ country.subtitle }}
+                      </VListItemSubtitle>
+
+                      <template #append>
+                        <div :class="`d-flex align-center font-weight-semibold ${country.profitLoss > 0 ? 'text-success' : 'text-error'}`">
+                          <VIcon
+                            :icon="country.profitLoss > 0 ? 'tabler-chevron-up' : 'tabler-chevron-down'"
+                            size="18"
+                            class="me-1"
+                          />
+                          <span>{{ Math.abs(country.profitLoss) }}%</span>
+                        </div>
+                      </template>
+                    </VListItem>
+                  </VList>
+                </VCardText>
+              </RouterLink>
             </VCard>
           </VCol>
         </VRow>
       </VCardText>
     </VCard>
+
+    <AddNewVideo
+      v-model:image-selected="workEnvironmentsSelected"
+      v-model:isDrawerOpenDialog="isAddNewVideo"
+      @image-data="saveNewVideo"
+    />
     <AddNewWorkEnvironments
       v-model:isDrawerOpen="isAddNewWorkEnvironments"
       v-model:work-environments-selected="workEnvironmentsSelected"

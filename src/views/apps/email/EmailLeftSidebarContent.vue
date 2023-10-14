@@ -3,50 +3,11 @@ const emit = defineEmits(['toggleComposeDialogVisibility'])
 
 const folders = [
   {
-    title: 'Inbox',
-    prependIcon: 'tabler-mail',
-    to: { name: 'apps-email' },
+    title: 'Imágenes',
+    prependIcon: 'tabler-album',
+    to: { name: 'apps-archivos-videos' },
   },
-  {
-    title: 'Sent',
-    prependIcon: 'tabler-send',
-    to: {
-      name: 'apps-email-filter',
-      params: { filter: 'sent' },
-    },
-  },
-  {
-    title: 'Draft',
-    prependIcon: 'tabler-pencil',
-    to: {
-      name: 'apps-email-filter',
-      params: { filter: 'draft' },
-    },
-  },
-  {
-    title: 'Starred',
-    prependIcon: 'tabler-star',
-    to: {
-      name: 'apps-email-filter',
-      params: { filter: 'starred' },
-    },
-  },
-  {
-    title: 'Spam',
-    prependIcon: 'tabler-help',
-    to: {
-      name: 'apps-email-filter',
-      params: { filter: 'spam' },
-    },
-  },
-  {
-    title: 'Trash',
-    prependIcon: 'tabler-trash',
-    to: {
-      name: 'apps-email-filter',
-      params: { filter: 'trashed' },
-    },
-  },
+
 ]
 
 const labels = [
@@ -86,18 +47,8 @@ const labels = [
 </script>
 
 <template>
-  <!-- 👉 Compose -->
-  <div class="pa-5">
-    <VBtn
-      block
-      @click="$emit('toggleComposeDialogVisibility')"
-    >
-      Compose
-    </VBtn>
-  </div>
-
   <!-- 👉 Folders -->
-  <ul class="email-filters-labels">
+  <ul class="mt-5 email-filters-labels">
     <RouterLink
       v-for="folder in folders"
       :key="folder.title"
