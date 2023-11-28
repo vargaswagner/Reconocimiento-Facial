@@ -3,6 +3,7 @@ import apiAuthJWT from '@/services/auth/auth'
 import axios from '@axios'
 
 const enpoint = 'videos'
+const modelName = 'Video'
 class VideosApi extends ApiClass{
   getAll = async params => {
     try{
@@ -19,7 +20,12 @@ class VideosApi extends ApiClass{
         },
       )
     } catch(error){
-      console.log('error API', error)
+      if (error) {
+        super.showErrorMessage(error.response, modelName)
+        throw error 
+      } else {
+        super.showErrorMessage(null, modelName)
+      }
     }
         
   }
@@ -37,7 +43,12 @@ class VideosApi extends ApiClass{
         },
       )
     } catch(error){
-      console.log('error API', error)
+      if (error) {
+        super.showErrorMessage(error.response, modelName)
+        throw error 
+      } else {
+        super.showErrorMessage(null, modelName)
+      }
     }
   }
 
@@ -45,7 +56,7 @@ class VideosApi extends ApiClass{
     try {
       const token = await apiAuthJWT.getTokenAndVerify()
 
-      return await axios.post(
+      const response = await axios.post(
         `${enpoint}/`,
         data,
         {
@@ -54,8 +65,17 @@ class VideosApi extends ApiClass{
           },
         },
       )
+
+      super.showCreateMessage(modelName)
+      
+      return response
     } catch(error){
-      console.log('error API', error)
+      if (error) {
+        super.showErrorMessage(error.response, modelName)
+        throw error 
+      } else {
+        super.showErrorMessage(null, modelName)
+      }
     }
   }
 
@@ -63,7 +83,7 @@ class VideosApi extends ApiClass{
     try {
       const token = await apiAuthJWT.getTokenAndVerify()
 
-      return await axios.delete(
+      const response = await axios.delete(
         `${enpoint}/${id}/`,
         {
           headers: {
@@ -71,8 +91,17 @@ class VideosApi extends ApiClass{
           },
         },
       )
+
+      super.showDeleteMessage(modelName)
+      
+      return response
     } catch(error){
-      console.log('error API', error)
+      if (error) {
+        super.showErrorMessage(error.response, modelName)
+        throw error 
+      } else {
+        super.showErrorMessage(null, modelName)
+      }
     }
   }
 
@@ -80,7 +109,7 @@ class VideosApi extends ApiClass{
     try {
       const token = await apiAuthJWT.getTokenAndVerify()
 
-      return await axios.put(
+      const response = await axios.put(
         `${enpoint}/${id}/`,
         data,
         {
@@ -89,6 +118,10 @@ class VideosApi extends ApiClass{
           },
         },
       )
+
+      super.showUpdateMessage(modelName)
+      
+      return response
     } catch(error){
       console.log('error API', error)
     }

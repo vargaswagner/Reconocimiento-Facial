@@ -34,7 +34,6 @@ const getAllDataVideo= async () => {
     let response = await videosApi.getAll()
 
     listVideos.value = response.data.results
-    console.log('datos videos detections', listVideos)
 
   } catch (error) {
     console.log(error)

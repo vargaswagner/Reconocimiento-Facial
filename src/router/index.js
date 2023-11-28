@@ -36,7 +36,7 @@ const router = createRouter({
         // }
 
         if (userData.is_active/* && ability.$can('manage', 'all')*/){
-          return { name: 'dashboards-analytics' }
+          return { name: 'dashboards-home' }
         }
 
         // if (userData.role.code == 0) {
@@ -58,7 +58,7 @@ const router = createRouter({
         // if (userRole == null){
         //   return { name: 'access-control' }
         // }
-        return { name: 'dashboards-analytics' }
+        return { name: 'dashboards-home' }
       },
     },
     ...setupLayouts(routes),
@@ -70,27 +70,31 @@ const router = createRouter({
 
 router.beforeEach(async (to, _, next) => {
   const isLoggedIn = isUserLoggedIn()
-  if (to.name!='login') await apiAuthJWT.getTokenAndVerify()
 
-  // console.log('isLoggedIn :>> ', isLoggedIn)
-  // console.log('canNavigate(to) :>> ', canNavigate(to))
-  if (!canNavigate(to)) {
-    // Redirect to login if not logged in
-    // ℹ️ Only add `to` query param if `to` route is not index route
-    if (!isLoggedIn)
-      return next({ name: 'login', query: { to: to.name !== 'index' ? to.fullPath : undefined } })
+  if (to.name === 'register' || to.name === 'login') {
+    if (isLoggedIn) {
+      // Redirige al usuario autenticado a la página de inicio.
+      next(getHomeRouteForLoggedInUser(getUserData()))
+    } else {
+      // Permite que el usuario no autenticado continúe a las rutas "register" y "login".
+      next()
+    }
+  } else {
+    if (to.name !== 'login') {
+      await apiAuthJWT.getTokenAndVerify()
+    }
 
-    // If logged in => not authorized
-    return next({ name: 'not-authorized' })
+    if (!canNavigate(to)) {
+      if (!isLoggedIn) {
+        // Redirige a la página de inicio de sesión si el usuario no está autenticado.
+        next({ name: 'login', query: { to: to.name !== 'index' ? to.fullPath : undefined } })
+      } else {
+        // Redirige a la página "not-authorized" si el usuario no tiene permisos para acceder a la ruta.
+        next({ name: 'not-authorized' })
+      }
+    } else {
+      next()
+    }
   }
-
-  // Redirect if logged in
-  if (to.meta.redirectIfLoggedIn && isLoggedIn) {
-    const userData = getUserData()
-
-    next(getHomeRouteForLoggedInUser(userData))
-  }
-  
-  return next()
 })
 export default router

@@ -3,6 +3,7 @@ import apiAuthJWT from '@/services/auth/auth'
 import axios from '@axios'
 
 const enpoint = 'video_detections'
+const modelName = 'Video detectado'
 class VideoDetectionsApi extends ApiClass{
   getAll = async params => {
     try{
@@ -19,7 +20,12 @@ class VideoDetectionsApi extends ApiClass{
         },
       )
     } catch(error){
-      console.log('error API', error)
+      if (error) {
+        super.showErrorMessage(error.response, modelName)
+        throw error 
+      } else {
+        super.showErrorMessage(null, modelName)
+      }
     }
         
   }
@@ -36,8 +42,13 @@ class VideoDetectionsApi extends ApiClass{
           },
         },
       )
-    } catch(error){
-      console.log('error API', error)
+    } catch(error){ 
+      if (error) {
+        super.showErrorMessage(error.response, modelName)
+        throw error 
+      } else {
+        super.showErrorMessage(null, modelName)
+      }
     }
   }
 
@@ -45,7 +56,7 @@ class VideoDetectionsApi extends ApiClass{
     try {
       const token = await apiAuthJWT.getTokenAndVerify()
 
-      return await axios.post(
+      const response = await axios.post(
         `${enpoint}/`,
         data,
         {
@@ -54,8 +65,17 @@ class VideoDetectionsApi extends ApiClass{
           },
         },
       )
+
+      super.showSuccessMessage(modelName)
+      
+      return response
     } catch(error){
-      console.log('error API', error)
+      if (error) {
+        super.showErrorMessage(error.response, modelName)
+        throw error 
+      } else {
+        super.showErrorMessage(null, modelName)
+      }
     }
   }
 
@@ -63,7 +83,7 @@ class VideoDetectionsApi extends ApiClass{
     try {
       const token = await apiAuthJWT.getTokenAndVerify()
 
-      return await axios.delete(
+      const response = await axios.delete(
         `${enpoint}/${id}/`,
         {
           headers: {
@@ -71,8 +91,17 @@ class VideoDetectionsApi extends ApiClass{
           },
         },
       )
+
+      super.showDeleteMessage(modelName)
+      
+      return response
     } catch(error){
-      console.log('error API', error)
+      if (error) {
+        super.showErrorMessage(error.response, modelName)
+        throw error 
+      } else {
+        super.showErrorMessage(null, modelName)
+      }
     }
   }
 
@@ -80,7 +109,7 @@ class VideoDetectionsApi extends ApiClass{
     try {
       const token = await apiAuthJWT.getTokenAndVerify()
 
-      return await axios.put(
+      const response = await axios.put(
         `${enpoint}/${id}/`,
         data,
         {
@@ -89,8 +118,17 @@ class VideoDetectionsApi extends ApiClass{
           },
         },
       )
+
+      super.showUpdateMessage(modelName)
+      
+      return response
     } catch(error){
-      console.log('error API', error)
+      if (error) {
+        super.showErrorMessage(error.response, modelName)
+        throw error 
+      } else {
+        super.showErrorMessage(null, modelName)
+      }
     }
   }
 

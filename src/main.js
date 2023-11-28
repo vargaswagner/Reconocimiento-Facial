@@ -13,6 +13,8 @@ import { abilitiesPlugin } from '@casl/vue'
 import '@core/scss/template/index.scss'
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
+import Toast from "vue-toastification"
+import "vue-toastification/dist/index.css"
 
 loadFonts()
 
@@ -20,6 +22,7 @@ loadFonts()
 // Create vue app
 const app = createApp(App)
 
+app.use(Toast)
 
 // Use plugins
 app.use(vuetify)

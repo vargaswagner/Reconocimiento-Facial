@@ -19,29 +19,30 @@ const { isLeftSidebarOpen } = useResponsiveLeftSidebar()
 // Composables
 const route = useRoute()
 const store = useEmailStore()
-const dataAllImages = ref()
+const dataAllVideos = ref()
 const loadingSaveImage = ref(false)
 
 // Compose dialog
 const isComposeDialogVisible = ref(false)
-const isAddNewImageDrawerVisible = ref(false)
+const isAddNewVideoDrawerVisible = ref(false)
 const loadingMoreData = ref(false)
 const loadingDeleteImage = ref(false)
+const updateData = ref(false)
 
 // Ref
 const search = ref('')
 const rowPerPage = ref(10)
 const currentPage = ref(1)
 const q = ref('')
-const imageSelected = ref()
+const videoSelected = ref()
 
 // ------------------------------------------------
 const selectedEmails = ref([])
 const newResults = ref()
 
-const deleteImagenSelect = ref({
+const deleteVideoSelect = ref({
   status: false,
-  image: undefined,
+  video: undefined,
 })
 
 
@@ -54,14 +55,12 @@ const getDataAllVideos = async () => {
       page_size: rowPerPage.value,
     })
 
-    dataAllImages.value = response.data.results
+    dataAllVideos.value = response.data.results
 
     // if (newResults.length > 0) {
-    //   dataAllImages.value = [...dataAllImages.value, ...dataImagesResults]
+    //   dataAllVideos.value = [...dataAllVideos.value, ...dataImagesResults]
     //   currentPage.value++
     // }
-
-    console.log('videosApi',dataAllImages)
     
   } catch (error) {
     console.log(error)
@@ -70,7 +69,7 @@ const getDataAllVideos = async () => {
   }
 }
 
-// getDataAllImages()
+// getdataAllVideos()
 
 watchEffect(async () => await getDataAllVideos())
 
@@ -103,16 +102,16 @@ watch([
 
 const openDialogAddNewImage = () => {
   // resetArtist()
-  // imageSelected.value = null
-  isAddNewImageDrawerVisible.value = true
+  videoSelected.value = {}
+  updateData.value = false
+  isAddNewVideoDrawerVisible.value = true
 }
 
 const createImage = async data => {
   try {
-    let response = await imagesApi.post(data, { headers : { 'content-type': 'multipart/form-data' } })
-    isAddNewImageDrawerVisible.value = false
+    let response = await videosApi.post(data, { headers : { 'content-type': 'multipart/form-data' } })
+    isAddNewVideoDrawerVisible.value = false
 
-    imageSelected.value = {}
     await getDataAllVideos()
   } catch (err) {
     console.log(err)
@@ -121,33 +120,35 @@ const createImage = async data => {
 
 // Método PATCH para la actualización
 const updateImage = async (id, data) => {
-  console.log('imafen ID', id,data)
-
+  console.log('response id, data', id, data)
   try {
-    let response = await imagesApi.put(id, data)
-    isAddNewImageDrawerVisible.value = false 
-    imageSelected.value = {}
+    let response = await videosApi.put(id, {
+      label_name: data.get('label_name'),
+    })
+    isAddNewVideoDrawerVisible.value = false 
 
+    console.log('response', response)
     await getDataAllVideos()
   } catch (err) {
     console.log(err)
   }
 }
 
-const imageID = ref()
+const videoID = ref()
 
-const saveImage = async imageData => {
-  for (const [key, value] of imageData.entries()) {
+const saveImage = async videoData => {
+  
+  for (const [key, value] of videoData.entries()) {
     console.log(`Campo: ${key}, Valor: ${value}`)
-    imageID.value = value
+    videoID.value = value
   }
 
   try{
     loadingSaveImage.value = true
-    if(!imageID.value){
-      await createImage(imageData)
+    if(videoID.value === 'undefined'){
+      await createImage(videoData)
     }else {
-      await updateImage(imageID, imageData)
+      await updateImage(videoID, videoData)
     }
     
   } finally{
@@ -155,32 +156,31 @@ const saveImage = async imageData => {
   }
 }
 
-const imageSelectedEvent = image => {
+const videoSelectedEvent = video => {
   // resertErrorsAcademicYear()
-  image.name = image.name
-  image.image = image.image
-  imageSelected.value = image
-  isAddNewImageDrawerVisible.value = true
-  dataAllImages.value = [...dataAllImages.value]
+  updateData.value = true
+  videoSelected.value = video
+  isAddNewVideoDrawerVisible.value = true
+  dataAllVideos.value = [...dataAllVideos.value]
 }
 
-const deleteImageConfirm = image => {
-  deleteImagenSelect.value.status = true
-  deleteImagenSelect.value.image = image
+const deleteVideoConfirm = video => {
+  deleteVideoSelect.value.status = true
+  deleteVideoSelect.value.video = video
 }
 
-const deleteImage = async confirm => {
+const deleteVideo = async confirm => {
   if (!confirm) return
 
   loadingDeleteImage.value=true
   try {
-    let response = await imagesApi.delete(deleteImagenSelect.value.image.id)
+    let response = await videosApi.delete(deleteVideoSelect.value.video.id)
   } catch (err) {
     console.log(err)
   } finally {
     getDataAllVideos()
     loadingDeleteImage.value=false
-    deleteImagenSelect.value.status = false
+    deleteVideoSelect.value.status = false
   }
 }
 </script>
@@ -224,25 +224,13 @@ const deleteImage = async confirm => {
             prepend-inner-icon="tabler-search"
             placeholder="Search Imagen"
           />
-          <VBtn
-            variant="tonal"
-            color="success"
-            icon
-            size="small"
-            @click="openDialogAddNewImage"
-          >
-            <VIcon
-              icon="tabler-plus"
-              size="27"
-            />
-          </VBtn>
         </div>
 
         <VDivider />
         <ArchivosCard
-          :data-archive="dataAllImages"
-          @data-selected-delete="deleteImageConfirm"
-          @data-selected-edit="imageSelectedEvent"
+          :data-archive="dataAllVideos"
+          @data-selected-delete="deleteVideoConfirm"
+          @data-selected-edit="videoSelectedEvent"
         />
         <li
           v-show="!store.emails.length"
@@ -252,16 +240,17 @@ const deleteImage = async confirm => {
         </li>
       </VCard>
       <AddNewVideoDrawer
+        v-model:updateData="updateData"
         v-model:loadingSaveImage="loadingSaveImage"
-        v-model:image-selected="imageSelected"
-        v-model:isDrawerOpenDialog="isAddNewImageDrawerVisible"
-        @image-data="saveImage"
+        v-model:video-selected="videoSelected"
+        v-model:isDrawerOpenDialog="isAddNewVideoDrawerVisible"
+        @video-data="saveImage"
       />
       <ConfirmDialog
-        v-model:isDialogVisible="deleteImagenSelect.status"
-        :confirmation-msg="`¿Estas seguro de que quieres eliminar el Año Académico <<${deleteImagenSelect.image?.name}>>?. Se eliminará de forma permenente.`"
+        v-model:isDialogVisible="deleteVideoSelect.status"
+        :confirmation-msg="`¿Estas seguro de que quieres eliminar el video <<${deleteVideoSelect.video?.label_name}>>?. Se eliminará de forma permenente.`"
         :dialog-loading="loadingDeleteImage"
-        @confirm="deleteImage"
+        @confirm="deleteVideo"
       />
     </VMain>
   </VLayout>

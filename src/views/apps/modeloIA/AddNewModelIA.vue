@@ -39,8 +39,6 @@ const resetModelIA = () => {
 
 resetModelIA()
 
-watchEffect(() => console.log('hola mundo', props.workEnvironments))
-
 const closeNavigationDrawer = () => {
   emit('update:isDrawerOpen', false)
 }
@@ -84,7 +82,10 @@ const handleDrawerModelValueUpdate = val => {
     @update:model-value="handleDrawerModelValueUpdate"
   >
     <PerfectScrollbar :options="{ wheelPropagation: false }">
-      <VCard flat>
+      <VCard
+        flat
+        title="Entrena nuevo modelo con nuevas etiquetas"
+      >
         <VCardText>
           <!-- 👉 Form Create -->
           <VForm

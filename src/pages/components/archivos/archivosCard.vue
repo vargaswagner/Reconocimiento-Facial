@@ -31,6 +31,7 @@ const dataSelectedEdit = data => {
 watchEffect(() => {
   if (props.dataArchive) {
     datosArchivo.value = props.dataArchive
+    console.log('archivos', datosArchivo)
   }
 })
 </script>
@@ -47,36 +48,36 @@ watchEffect(() => {
       <VCardText>
         <VRow>
           <VCol
-            v-for="imagen in datosArchivo"
-            :key="imagen"
+            v-for="archivo in datosArchivo"
+            :key="archivo.id"
             cols="12"
-            md="3"
+            md="4"
             sm="4"
             class="text-center"
           >
             <VCard
+              class="border"
               style="background-color: rgba(255, 255, 255, 10%);"
             >
               <VRow>
                 <VCol>
-                  <VImg
-                    :src="imagen?.image"
+                  <video
+                    :src="archivo?.video"
                     height="130"
-                    class="mt-2"
+                    class="mt-2 rounded"
                   />
                 </VCol>
               </VRow>
               <VRow>
                 <VCol cols="12">
                   <h4 class="ml-3 mr-3 text-secondary text-truncate">
-                    {{ imagen.name }}
+                    {{ archivo.label_name }}
                   </h4>
                   <span class="text-sm text-truncate">
-                    {{ imagen.created.split('T')[0] }}
+                    {{ archivo.created.split('T')[0] }}
                   </span>
                 </VCol>
                 <VCol
-                  v-if="imagen?.image"
                   cols="12"
                 >
                   <VBtn
@@ -84,7 +85,7 @@ watchEffect(() => {
                     size="x-small"
                     color="secondary"
                     variant="tonal"
-                    @click="dataSelectedEdit(imagen)"
+                    @click="dataSelectedEdit(archivo)"
                   >
                     <VIcon
                       size="22"
@@ -96,7 +97,7 @@ watchEffect(() => {
                     size="x-small"
                     color="error"
                     variant="tonal"
-                    @click="dataSelectedDelete(imagen)"
+                    @click="dataSelectedDelete(archivo)"
                   >
                     <VIcon
                       size="22"

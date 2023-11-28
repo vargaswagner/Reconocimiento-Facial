@@ -3,6 +3,8 @@ import apiAuthJWT from '@/services/auth/auth'
 import axios from '@axios'
 
 const enpoint = 'ia_models'
+const modelName = 'Modelo'
+const entrenaModel = 'Entrenamiento del modelo completado'
 class IAModelsApi extends ApiClass{
   getAll = async params => {
     try{
@@ -19,7 +21,12 @@ class IAModelsApi extends ApiClass{
         },
       )
     } catch(error){
-      console.log('error API', error)
+      if (error) {
+        super.showErrorMessage(error.response, modelName)
+        throw error 
+      } else {
+        super.showErrorMessage(null, modelName)
+      }
     }
         
   }
@@ -37,7 +44,12 @@ class IAModelsApi extends ApiClass{
         },
       )
     } catch(error){
-      console.log('error API', error)
+      if (error) {
+        super.showErrorMessage(error.response, modelName)
+        throw error 
+      } else {
+        super.showErrorMessage(null, modelName)
+      }
     }
   }
 
@@ -45,7 +57,7 @@ class IAModelsApi extends ApiClass{
     try {
       const token = await apiAuthJWT.getTokenAndVerify()
 
-      return await axios.post(
+      const response = await axios.post(
         `${enpoint}/`,
         data,
         {
@@ -54,8 +66,39 @@ class IAModelsApi extends ApiClass{
           },
         },
       )
+
+      super.showSuccessMessage(entrenaModel)
+      
+      return response
     } catch(error){
       console.log('error API', error)
+    }
+  }
+
+  create_proyect = async data => {
+    try {
+      const token = await apiAuthJWT.getTokenAndVerify()
+
+      const response = await axios.post(
+        `${enpoint}/model/create_proyect/`,
+        data,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        },
+      )
+
+      super.showSuccessMessage('Modelo IA descargado con éxito')
+      
+      return response
+    } catch(error){
+      if (error) {
+        super.showErrorMessage(error.response, modelName)
+        throw error 
+      } else {
+        super.showErrorMessage(null, modelName)
+      }
     }
   }
 
@@ -63,7 +106,7 @@ class IAModelsApi extends ApiClass{
     try {
       const token = await apiAuthJWT.getTokenAndVerify()
 
-      return await axios.delete(
+      const response = await axios.delete(
         `${enpoint}/${id}/`,
         {
           headers: {
@@ -71,8 +114,17 @@ class IAModelsApi extends ApiClass{
           },
         },
       )
+
+      super.showDeleteMessage(modelName)
+      
+      return response
     } catch(error){
-      console.log('error API', error)
+      if (error) {
+        super.showErrorMessage(error.response, modelName)
+        throw error 
+      } else {
+        super.showErrorMessage(null, modelName)
+      }
     }
   }
 
@@ -80,7 +132,7 @@ class IAModelsApi extends ApiClass{
     try {
       const token = await apiAuthJWT.getTokenAndVerify()
 
-      return await axios.put(
+      const response = await axios.put(
         `${enpoint}/${id}/`,
         data,
         {
@@ -89,8 +141,17 @@ class IAModelsApi extends ApiClass{
           },
         },
       )
+
+      super.showUpdateMessage(modelName)
+      
+      return response
     } catch(error){
-      console.log('error API', error)
+      if (error) {
+        super.showErrorMessage(error.response, modelName)
+        throw error 
+      } else {
+        super.showErrorMessage(null, modelName)
+      }
     }
   }
 

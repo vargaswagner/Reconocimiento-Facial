@@ -6,11 +6,20 @@ import VideoCamara from '@/views/apps/archivos/videos/VideoCamara.vue'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import { watchEffect } from 'vue'
 import iAModelsApi from '@/services/models/modelIA'
+import videosApi from '@/services/models/videos'
 import videoDetectionsApi from '@/services/models/videoDetections'
 
 const props = defineProps({
   isDrawerOpen: {
     type: Boolean,
+    required: true,
+  },
+  enviroments: {
+    type: String,
+    required: true,
+  },
+  listaIAModels: {
+    type: Object,
     required: true,
   },
 }) 
@@ -20,6 +29,9 @@ const emit = defineEmits([
   'videoDetectionData',
 ])
 
+const dataItemsModel = ref()
+
+
 const isFormValid = ref(false)
 const refForm = ref()
 
@@ -27,10 +39,12 @@ const isAddVideoForDetection = ref(false)
 
 const statusVideoSelect = ref(false)
 const videoDetections = ref()
-const listIAModels = ref([])
 const resultVideoDetection = ref()
 const loadingSaveVideoDetection = ref(false)
+const loadingSaveRecordingDetection = ref(false)
 const resultVideo = ref()
+
+const loadingDownloadModeloIA = ref(false)
 
 const resetVideoDetections = () => {
   videoDetections.value = {
@@ -41,22 +55,6 @@ const resetVideoDetections = () => {
 
 resetVideoDetections()
 
-const getDataAllIAModel = async () => {
-  try {
-    let response = await iAModelsApi.getAll()
-
-    listIAModels.value = response.data.results.map(iaModel => {
-      iaModel.title = iaModel.name
-      iaModel.id = iaModel.id
-
-      return iaModel
-    })
-  }catch (error) {
-    console.log(error)
-  }
-}
-
-getDataAllIAModel()
 
 const openFileVideosCard = () => {
   isAddVideoForDetection.value = true
@@ -66,23 +64,46 @@ const getSelectVideoDetection = data => {
   if (data) {
     videoDetections.value.video = data.video
   }
-  console.log('hellow Video', videoDetections)
+}
+
+const saveNewVideo = async data => {
+
+  data.append('label_name', 'grabacion2')
+  data.append('work_environment', props.enviroments)
+
+  try {
+    await videosApi.post(data)
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+const updateModeloIA = async data => {
+
+  try {
+    if (data) {
+      let res = await iAModelsApi.put(data.ia_model.id,{
+        name: data.ia_model.name,
+      })
+
+    }
+  } catch (err) {
+    console.log(err)
+  }
 }
 
 const createNewVideoDetection = async data => {
+
   try {
     if (data) {
+      loadingSaveVideoDetection.value = true
 
       const formData = new FormData()
 
       formData.append('video', data)
       formData.append('ia_model', videoDetections.value.ia_model.id)
-    
-      console.log('dataCameradataCameradataCamera',formData)
-    
 
       let response = await videoDetectionsApi.post(formData)
-      console.log('responseresponsecamara',response)
 
       resultVideo.value = response
 
@@ -98,8 +119,6 @@ const createNewVideoDetection = async data => {
       formDataToSubmit.append('id', videoDetections.value.id)
 
       let response = await videoDetectionsApi.post(formDataToSubmit)
-
-      console.log('responseVideo', response.data)
 
       emit('videoDetectionData', response.data)
 
@@ -138,9 +157,56 @@ const openFileInput = () => {
 const handleFileChange = event => {
   const file = event.target.files[0]
   if (file) {
-    console.log('Archivo seleccionado:', file)
     statusVideoSelect.value = true
   }
+}
+
+const downloadModeloIA = async () => {
+  if (videoDetections.value.ia_model) {
+    try {
+      loadingDownloadModeloIA.value = true
+      let response = await iAModelsApi.create_proyect({
+        id: videoDetections.value.ia_model.id,
+      })
+      const blob = base64toBlob(response.data.base64_file, 'application/octet-stream')
+      const url = window.URL.createObjectURL(blob)
+
+      // Crea y simula un enlace de descarga
+      const a = document.createElement('a')
+
+      a.href = url
+      a.download = `${videoDetections.value.ia_model.name}.rar`
+      a.click()
+
+      // Limpia el enlace después de la descarga
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.log(error)
+    }finally{
+      loadingDownloadModeloIA.value = false
+    }
+  }
+}
+
+// Función para convertir base64 a Blob
+function base64toBlob(base64Data, contentType) {
+  const byteCharacters = atob(base64Data)
+  const byteArrays = []
+
+  for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+    const slice = byteCharacters.slice(offset, offset + 512)
+    const byteNumbers = new Array(slice.length)
+
+    for (let i = 0; i < slice.length; i++) {
+      byteNumbers[i] = slice.charCodeAt(i)
+    }
+
+    const byteArray = new Uint8Array(byteNumbers)
+
+    byteArrays.push(byteArray)
+  }
+
+  return new Blob(byteArrays, { type: contentType })
 }
 </script>
 
@@ -154,12 +220,24 @@ const handleFileChange = event => {
       <VCol cols="12">
         <VSelect
           v-model="videoDetections.ia_model"
-          :items="listIAModels"
+          :items="props.listaIAModels"
           label="Modelo IA"
           single-line
           variant="filled"
           return-object
         />
+      </VCol>
+      <VCol
+        v-if="videoDetections.ia_model"
+        cols="12"
+      >
+        <VBtn
+          :disabled="loadingDownloadModeloIA"
+          :loading="loadingDownloadModeloIA"
+          @click="downloadModeloIA"
+        >
+          Descargar
+        </VBtn>
       </VCol>
       <VCol cols="12">
         <div class="border rounded pa-4">
@@ -187,7 +265,7 @@ const handleFileChange = event => {
               :disabled="loadingSaveVideoDetection"
               :loading="loadingSaveVideoDetection"
             >
-              Save
+              Cargar
             </VBtn>
 
             <VBtn
@@ -195,7 +273,7 @@ const handleFileChange = event => {
               variant="tonal"
               color="secondary"
             >
-              Reset
+              Cancelar
             </VBtn>
           </div>
         </div>
@@ -204,6 +282,7 @@ const handleFileChange = event => {
       <VCol cols="12">
         <div class="border rounded pa-4">
           <VideoCamara
+            v-model:loadingSaveVideoDetection="loadingSaveVideoDetection"
             :selected-model="videoDetections.ia_model"
             @video-data-camara="createNewVideoDetection"
           />

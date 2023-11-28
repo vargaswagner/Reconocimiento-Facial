@@ -4,10 +4,6 @@ import AddNewModelIA from '@/views/apps/modeloIA/AddNewModelIA.vue'
 import AddNewVideoDetection from '@/views/apps/videoDetection/AddNewVideoDetection.vue'
 import videosApi from '@/services/models/videos'
 
-// import fondoImagen from '@/assets/images/illustrations/congo-illustration.png'
-import fondoImagen from '@/assets/images/pages/misc-under-maintenance.png'
-
-
 import iAModelsApi from '@/services/models/modelIA'
 import videoDetectionsApi from '@/services/models/videoDetections'
 import { watchEffect } from 'vue'
@@ -18,46 +14,23 @@ const router = useRouter()
 const vuetifyTheme = useTheme()
 const currentTheme = vuetifyTheme.current.value.colors
 
-const listVideos = ref([])
+const listVideos = ref()
 const isAddNewModelIA = ref(false)
 const isAddNewVideoDetection = ref(false)
 
 const resultVideoDetection = ref()
 
 const loadingSaveModelIA = ref(false)
-const listIAModels = ref([])
 
 const getAllVideos = async () => {
   try {
-    let response = await videosApi.getAll({
-      work_environment__id: route.params.id,
-    })
+    let response = await videosApi.getAll()
     listVideos.value = response.data.results
+    console.log('listVideos', listVideos)
   } catch (error) {
     console.log(error)
   }
 }
-
-const getDataAllIAModel = async () => {
-  try {
-    let response = await iAModelsApi.getAll({
-      work_environment__id: route.params.id,
-    })
-
-    listIAModels.value = response.data.results.map(iaModel => {
-      iaModel.title = iaModel.name
-      iaModel.id = iaModel.id
-
-      return iaModel
-    })
-
-  }catch (error) {
-    console.log(error)
-  }
-}
-
-getDataAllIAModel()
-
 
 getAllVideos()
 
@@ -83,6 +56,7 @@ const createNewModelIA = async data => {
     })
 
     isAddNewModelIA.value = false
+    console.log('responseresponse', response)
   } catch (error) {
     console.log('error', error)
   }finally{
@@ -92,6 +66,7 @@ const createNewModelIA = async data => {
 
 const createNewVideoDetection = async data => {
   
+  console.log('datayakklkl', data)
   try {
     // let response = await videoDetectionsApi.post(data)
 
@@ -99,6 +74,7 @@ const createNewVideoDetection = async data => {
 
     resultVideoDetection.value = data.video_result
 
+    // console.log('responseresponse', response)
   } catch (error) {
     console.log('error', error)
   }
@@ -113,10 +89,33 @@ const openFileInput = () => {
   fileInput.click()
 }
 
+const handleFileChange = event => {
+  const file = event.target.files[0]
+  if (file) {
+    console.log('Archivo seleccionado:', file)
+  }
+}
+
 const playVideo = () => {
   const videoElement = document.querySelector('video')
   if (videoElement) {
     videoElement.play() // Reproduce automáticamente el video cuando se carga
+  }
+}
+
+const items = [
+  'Foo',
+  'Bar',
+  'Fizz',
+  'Buzz',
+]
+
+const getDataAllModels = async () => {
+  try {
+    let response = await iAModelsApi.getAll()
+    console.log(response)
+  } catch (error) {
+    console.log(error)
   }
 }
 </script>
@@ -127,47 +126,33 @@ const playVideo = () => {
       <VCol
         cols="4"
       >
-        <VCard class="text-center">
-          <div class="border rounded pl-3 pr-3 pb-3">
-            <VBtn
-              v-if="listVideos.length > 0"
-              variant="tonal"
-              class="mt-2"
-              @click="openDialogModelIA"
-            >
-              Entrenar nuevo modelo
-            </VBtn>
-            <h3
-              v-else
-              class="text-warning mt-3"
-            >
-              👈 Sube videos
-            </h3>
-          </div>
-          <VCardText v-if="listVideos.length > 0">
-            <AddNewVideoDetection
-              v-model:listaIAModels="listIAModels"
-              v-model:isDrawerOpen="isAddNewVideoDetection"
-              v-model:enviroments="route.params.id"
-              @video-detection-data="createNewVideoDetection"
-            />
+        <VCard
+          class="text-center"
+          title="Entrenamiento del modelo"
+        >
+          <VCardText>
+            <VRow>
+              <VCol>
+                <VTextField
+                  label="Escribe el nombre del modelo"
+                  variant="filled"
+                />
+              </VCol>
+            </VRow>
           </VCardText>
+          <VBtn
+            variant="tonal"
+            class="mt-2"
+            @click="getDataAllModels"
+          >
+            Entrenar modelo
+          </VBtn>
         </VCard>
       </VCol>
       <VCol cols="8">
-        <VCard>
+        <VCard title="Etiquetas entrenados">
           <VCardText class="text-center">
-            <div
-              v-if="!resultVideoDetection"
-              class="fondo-imagen"
-            >
-              <VImg
-                :src="fondoImagen"
-                height="400"
-              />
-            </div>
             <video
-              v-else
               :key="resultVideoDetection"
               controls
               :src="resultVideoDetection"
@@ -196,8 +181,4 @@ const playVideo = () => {
 
 <style lang="scss">
 @use "@core/scss/template/libs/apex-chart.scss";
-
-// .fondo-imagen {
-//   block-size: 10rem;
-// }
 </style>

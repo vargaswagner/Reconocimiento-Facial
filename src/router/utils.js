@@ -24,8 +24,8 @@ export const getHomeRouteForLoggedInUser = userData => {
   }
   
   if (userData.is_active/* && ability.$can('manage', 'all')*/){
-    return { name: 'dashboards-analytics' }
+    return { name: 'dashboards-home' }
   }
 
-  return { name: 'dashboards-analytics' }
+  return { name: 'dashboards-home' }
 }

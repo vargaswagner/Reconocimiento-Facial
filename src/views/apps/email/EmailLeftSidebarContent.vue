@@ -3,46 +3,11 @@ const emit = defineEmits(['toggleComposeDialogVisibility'])
 
 const folders = [
   {
-    title: 'Imágenes',
+    title: 'Videos',
     prependIcon: 'tabler-album',
     to: { name: 'apps-archivos-videos' },
   },
 
-]
-
-const labels = [
-  {
-    title: 'Personal',
-    color: 'success',
-    to: {
-      name: 'apps-email-label',
-      params: { label: 'personal' },
-    },
-  },
-  {
-    title: 'Company',
-    color: 'primary',
-    to: {
-      name: 'apps-email-label',
-      params: { label: 'company' },
-    },
-  },
-  {
-    title: 'Important',
-    color: 'warning',
-    to: {
-      name: 'apps-email-label',
-      params: { label: 'important' },
-    },
-  },
-  {
-    title: 'Private',
-    color: 'error',
-    to: {
-      name: 'apps-email-label',
-      params: { label: 'private' },
-    },
-  },
 ]
 </script>
 
@@ -70,35 +35,6 @@ const labels = [
           size="20"
         />
         <span>{{ folder.title }}</span>
-      </li>
-    </RouterLink>
-
-    <!-- 👉 Labels -->
-    <li class="text-xs d-block text-uppercase text-disabled mt-6">
-      LABELS
-    </li>
-    <RouterLink
-      v-for="label in labels"
-      :key="label.title"
-      v-slot="{ isActive, href, navigate }"
-      class="d-flex items-center"
-      :to="label.to"
-      custom
-    >
-      <li
-        v-bind="$attrs"
-        :href="href"
-        :class="isActive && 'email-label-active text-primary'"
-        class="cursor-pointer"
-        @click="navigate"
-      >
-        <VBadge
-          inline
-          dot
-          :color="label.color"
-          class="me-4"
-        />
-        <span>{{ label.title }}</span>
       </li>
     </RouterLink>
   </ul>

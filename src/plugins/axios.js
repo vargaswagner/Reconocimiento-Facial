@@ -1,11 +1,11 @@
 import axios from 'axios'
 
 
-const uriHTTPS = 'https://app-facial-recognition-production-e81a.up.railway.app/api/'
+// const uriHTTPS = 'https://app-facial-recognition-production-e81a.up.railway.app/api/'
 
 // const uriHTTP = 'http://localhost:8004'
 
-// const uriHTTPS = 'http://localhost:8004'
+const uriHTTPS = 'http://localhost:8000/api' 
 
 
 // http://172.30.48.1:8004/docs

@@ -101,10 +101,11 @@ const handleDrawerModelValueUpdate = val => {
               <VCol cols="12">
                 <VTextField
                   v-model="environments.name"
-                  prepend-inner-icon="tabler-device-mobile"
+                  prepend-inner-icon="tabler-folder"
                   :error-messages="props.errorWorkEnvironments.name"
                   label="Nombre"
                   placeholder="Nombre"
+                  :rules="[requiredValidator]"
                 />
               </VCol>
 

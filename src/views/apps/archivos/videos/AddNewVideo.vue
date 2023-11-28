@@ -1,4 +1,7 @@
 <script setup>
+import {
+  requiredValidator,
+} from '@validators'
 import { watchEffect } from "vue"
 
 const props = defineProps({
@@ -6,22 +9,22 @@ const props = defineProps({
     type: Boolean,
     required: true,
   },
-  imageSelected: {
+  videoSelected: {
     type: Object,
     required: false,
   },
-
-  // loadingSaveAcademicYear: {
-  //   type: Boolean,
-  //   required: true,
-  // },
+  updateData: {
+    type: Boolean,
+    required: false,
+  },
 })
 
 const emit = defineEmits([
   'update:isDrawerOpenDialog',
-  'imageData',
+  'videoData',
 ])
 
+const uploading = ref(false)
 const isDialogVisible = ref(false)
 const formDataImage = ref()
 const isFormValid = ref(false)
@@ -39,35 +42,38 @@ resetformDataImage()
 const onSubmit = async () => {
   const formDataToSubmit = new FormData()
 
-  formDataToSubmit.append('label_name', formDataImage.value.label_name)
-  formDataToSubmit.append('work_environment', props.imageSelected.id)
-  formDataToSubmit.append('video', formDataImage.value.video[0])
-  formDataToSubmit.append('number_samples', 32767)
-  formDataToSubmit.append('id', formDataImage.value.id)
+  
   refForm.value?.validate().then(({ valid }) => {
     
 
     if (valid) {
+      formDataToSubmit.append('label_name', formDataImage.value.label_name)
+      formDataToSubmit.append('work_environment', props.videoSelected.id)
+      formDataToSubmit.append('video', formDataImage?.value?.video?.[0])
+      formDataToSubmit.append('number_samples', 32767)
+      formDataToSubmit.append('id', formDataImage.value.id)
       
-      emit('imageData', formDataToSubmit)
+      emit('videoData', formDataToSubmit)
     }
   })
 }
 
-// watchEffect(() => {
-//   if (props.imageSelected){
-//     formDataImage.value.id = props.imageSelected.id
-//     formDataImage.value.name = props.imageSelected.name
+watchEffect(() => {
+  uploading.value = false
+  if (props.videoSelected){
+    formDataImage.value.id = props.videoSelected.id
+    formDataImage.value.label_name = props.videoSelected.label_name
 
-//     // formDataImage.value.image = props.imageSelected.image
-//   } else {
-//     nextTick(() => {
-//       refForm.value?.reset()
-//       refForm.value?.resetValidation()
-//     })
-//     resetformDataImage()
-//   }
-// })
+    // formDataImage.value.image = props.videoSelected.image
+  } else {
+    
+    nextTick(() => {
+      refForm.value?.reset()
+      refForm.value?.resetValidation()
+    })
+    resetformDataImage()
+  }
+})
 
 
 const closeNavigationDrawer = () => {
@@ -91,7 +97,7 @@ const handleDrawerModelValueUpdate = val => {
     <DialogCloseBtn @click="closeNavigationDrawer" />
 
     <!-- Dialog Content -->
-    <VCard title="Agregar Imagen">
+    <VCard title="Agregar Video">
       <VForm
         ref="refForm"
         v-model="isFormValid"
@@ -106,6 +112,7 @@ const handleDrawerModelValueUpdate = val => {
               <VTextField
                 v-model="formDataImage.label_name"
                 label="Nombre de la Imagen"
+                :rules="[requiredValidator]"
               />
             </VCol>
             <VCol
@@ -114,6 +121,7 @@ const handleDrawerModelValueUpdate = val => {
             >
               <VFileInput
                 v-model="formDataImage.video"
+                :disabled="updateData"
                 chips
                 label="Subir Archivo"
               />
@@ -133,9 +141,6 @@ const handleDrawerModelValueUpdate = val => {
             type="submit"
           >
             Guardar
-            <template #loader>
-              <span>Loading...</span>
-            </template>
           </VBtn>
         </VCardText>
       </VForm>

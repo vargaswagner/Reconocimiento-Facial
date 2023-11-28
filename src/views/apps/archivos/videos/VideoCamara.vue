@@ -9,6 +9,10 @@ const props = defineProps({
     type: Object,
     required: false,
   },
+  loadingSaveVideoDetection: {
+    type: Boolean,
+    required: true,
+  },
 })
 
 const emit = defineEmits([
@@ -26,8 +30,9 @@ const recordedBlob = ref(null)
 const recording = ref(false)
 const remainingTime = ref(10)
 const recordingTimer = ref(null)
+const name = ref()
 
-const loadingSaveVideoDetection = ref(false)
+// const loadingSaveVideoDetection = ref(false)
 
 const startCameraWithBeforeUnload = async () => {
   startCamera()
@@ -57,10 +62,8 @@ const startRecording = () => {
 
     // const blobURL = URL.createObjectURL(recordedBlob.value)
 
-    console.log('Blob grabado:', recordedBlob.value)
-
     if (recordedBlob.value) {
-      const file = new File([recordedBlob.value], 'grabacion.webm', {
+      const file = new File([recordedBlob.value], `${name?.value || 'grabacion'}.webm`, {
         type: 'video/webm',
       })
 
@@ -164,6 +167,8 @@ const stopCameraWithBeforeUnload = () => {
           icon
           color="primary"
           size="43"
+          :disabled="loadingSaveVideoDetection"
+          :loading="loadingSaveVideoDetection"
           @click="startRecording"
         >
           <VIcon
@@ -176,6 +181,8 @@ const stopCameraWithBeforeUnload = () => {
           icon
           size="43"
           color="error"
+          :disabled="loadingSaveVideoDetection"
+          :loading="loadingSaveVideoDetection"
           @click="stopRecording"
         >
           <VIcon

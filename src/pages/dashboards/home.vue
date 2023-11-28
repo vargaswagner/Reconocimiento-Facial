@@ -11,6 +11,8 @@ import frFlag from '@/assets/images/icons/countries/fr.png'
 import inFlag from '@/assets/images/icons/countries/in.png'
 import usFlag from '@/assets/images/icons/countries/us.png'
 
+import imagePackage from '@/assets/images/pages/icon explorer.png'
+
 import workEnvironmentsApi from '@/services/models/workEnvironments'
 import videosApi from '@/services/models/videos'
 
@@ -80,7 +82,6 @@ const getAllDataWorkEnvironments = async () => {
   try {
     let response = await workEnvironmentsApi.getAll()
     listaWorkEnvironments.value = response.data.results
-    console.log('listaWorkEnvironments', listaWorkEnvironments)
   } catch (error) {
     console.log(error)
   }
@@ -94,10 +95,7 @@ const createWorkEnvironments = async data => {
 
     isAddNewWorkEnvironments.value = false 
 
-    workEnvironmentsSelected.value = {}
-
     getAllDataWorkEnvironments()
-    console.log('responseresponseresponse', response)
   } catch (err) {
     console.log(err)
   }
@@ -109,8 +107,6 @@ const updateWorkEnvironments = async (id, data) => {
     let response = await workEnvironmentsApi.put(id, data)
 
     isAddNewWorkEnvironments.value = false 
-
-    workEnvironmentsSelected.value = {}
 
     getAllDataWorkEnvironments()
   } catch (err) {
@@ -133,17 +129,12 @@ const saveWorkEnvironments = async environmentsData => {
 }
 
 const saveNewVideo = async data => {
-  for (const [key, value] of data.entries()) {
-    console.log(`Campo: ${key}, Valor: ${value}`)
-  }
-  console.log('datadatadatadata', data)
 
   try {
     let response = await videosApi.post(data)
 
     isAddNewVideo.value = false 
 
-    console.log('responseresponseresponse', response)
   } catch (err) {
     console.log(err)
   }
@@ -151,6 +142,7 @@ const saveNewVideo = async data => {
 
 const openDialogAddNewWorkEnvironments = () => {
   resertErrorsWorkEnvironments()
+  workEnvironmentsSelected.value = null
   isAddNewWorkEnvironments.value = true
 }
 
@@ -182,7 +174,6 @@ const deleteWorkEnvironments = async confirm => {
   try {
 
     let response = await workEnvironmentsApi.delete(deleteWorkEnvironmentsSelect.value.workEnvironments.id)
-    
   } catch (err) {
     console.log(err)
   } finally {
@@ -214,15 +205,16 @@ const deleteWorkEnvironments = async confirm => {
             v-for="environments in listaWorkEnvironments"
             :key="environments"
             cols="12"
-            lg="4"
+            sm="4"
           >
             <VCard
-              :title="environments.name"
-              subtitle="Entorno de Trabajo"
-              style="background-color: rgb(0, 0, 0, 60%);"
+              class="border"
             >
+              <template #title>
+                <span class="text-primary titulo">{{ environments.name }}</span>
+              </template>
               <template #append>
-                <div class="mt-n4 me-n2">
+                <div class="me-n2">
                   <VBtn
                     icon
                     color="default"
@@ -237,12 +229,12 @@ const deleteWorkEnvironments = async confirm => {
                     <VMenu activator="parent">
                       <VList>
                         <VListItem
-                          v-for="(item, index) in ['Agregar Video','Editar', 'Delete']"
+                          v-for="(item, index) in ['Editar', 'Delete']"
                           :key="index"
                           :value="index"
                         >
                           <VListItemTitle>
-                            <span @click="item === 'Agregar Video' ? openDialogAddNewVideos(environments) : null">{{ item }}</span>
+                            <span @click="item === 'Editar' ? workEnvironmentsSelectedEvent(environments) : deleteWorkEnvironmentsConfirm(environments)">{{ item }}</span>
                           </VListItemTitle>
                         </VListItem>
                       </VList>
@@ -254,42 +246,22 @@ const deleteWorkEnvironments = async confirm => {
               <RouterLink
                 :to="{ name: 'apps-archivos-id', params: { id: environments.id } }"
               >
-                <VCardText>
-                  <VList class="card-list">
-                    <VListItem
-                      v-for="country in salesByCountries"
-                      :key="country.stats"
-                    >
-                      <template #prepend>
-                        <VAvatar
-                          size="34"
-                          color="secondary"
-                          variant="tonal"
-                          :image="country.avatarImg"
-                        />
-                      </template>
-
-                      <VListItemTitle class="font-weight-semibold">
-                        {{ country.stats }}
-                      </VListItemTitle>
-                      <VListItemSubtitle>
-                        {{ country.subtitle }}
-                      </VListItemSubtitle>
-
-                      <template #append>
-                        <div :class="`d-flex align-center font-weight-semibold ${country.profitLoss > 0 ? 'text-success' : 'text-error'}`">
-                          <VIcon
-                            :icon="country.profitLoss > 0 ? 'tabler-chevron-up' : 'tabler-chevron-down'"
-                            size="18"
-                            class="me-1"
-                          />
-                          <span>{{ Math.abs(country.profitLoss) }}%</span>
-                        </div>
-                      </template>
-                    </VListItem>
-                  </VList>
-                </VCardText>
+                <div class="text-center icono-folder">
+                  <VIcon
+                    icon="tabler-folders"
+                    size="200"
+                  />
+                </div> 
               </RouterLink>
+              
+              <div class="text-center mb-2">
+                <VBtn
+                  color="#000000"
+                  @click="openDialogAddNewVideos(environments)"
+                >
+                  <span class="text-primary">Agregar Video</span>
+                </VBtn>
+              </div>
             </VCard>
           </VCol>
         </VRow>
@@ -297,9 +269,9 @@ const deleteWorkEnvironments = async confirm => {
     </VCard>
 
     <AddNewVideo
-      v-model:image-selected="workEnvironmentsSelected"
+      v-model:video-selected="workEnvironmentsSelected"
       v-model:isDrawerOpenDialog="isAddNewVideo"
-      @image-data="saveNewVideo"
+      @video-data="saveNewVideo"
     />
     <AddNewWorkEnvironments
       v-model:isDrawerOpen="isAddNewWorkEnvironments"
@@ -318,5 +290,25 @@ const deleteWorkEnvironments = async confirm => {
 </template>
 
 <style lang="scss">
-@use "@core/scss/template/libs/apex-chart.scss";
+.titulo {
+  color: #36c !important;
+  font-family: Arial, sans-serif;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  transition: color 0.3s ease-in-out;
+
+  &:hover {
+    color: black !important;
+  }
+}
+
+.icono-folder {
+  color: #36c;
+  transition: color 0.3s ease-in-out;
+
+  &:hover {
+    color: black !important;
+  }
+}
 </style>

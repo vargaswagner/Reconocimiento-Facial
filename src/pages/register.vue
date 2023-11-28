@@ -1,3 +1,4 @@
+
 <script setup>
 import { VForm } from 'vuetify/components'
 import authV2RegisterIllustrationBorderedDark from '@/assets/images/pages/auth-v2-register-illustration-bordered-dark.png'
@@ -6,6 +7,14 @@ import authV2RegisterIllustrationDark from '@/assets/images/pages/auth-v2-regist
 import authV2RegisterIllustrationLight from '@/assets/images/pages/auth-v2-register-illustration-light.png'
 import authV2MaskDark from '@/assets/images/pages/misc-mask-dark.png'
 import authV2MaskLight from '@/assets/images/pages/misc-mask-light.png'
+import { setUserAccessModules } from '@/plugins/casl/abilities'
+import { useCurrentUserStore } from '@/stores/useCurrentUser'
+import { showToastError, showToastSuccess, showToastWarning } from '@/pages/apps/toast'
+
+import imageMundoMusic from '@/assets/images/pages/misc-under-maintenance.png'
+
+const currentUserStore = useCurrentUserStore()
+
 import { useAppAbility } from '@/plugins/casl/useAppAbility'
 import AuthProvider from '@/views/pages/authentication/AuthProvider.vue'
 import axios from '@axios'
@@ -18,10 +27,13 @@ import {
   requiredValidator,
 } from '@validators'
 
+import authUserApi from '@/services/auth/authUser'
+
 const refVForm = ref()
-const username = ref('johnDoe')
-const email = ref('john@example.com')
-const password = ref('john@MATERIO#123')
+const username = ref()
+const email = ref()
+const gender = ref('M')
+const password = ref()
 const privacyPolicies = ref(true)
 
 // Router
@@ -37,33 +49,93 @@ const errors = ref({
   password: undefined,
 })
 
-const register = () => {
-  axios.post('/auth/register', {
-    username: username.value,
-    email: email.value,
-    password: password.value,
-  }).then(r => {
-    const { accessToken, userData, userAbilities } = r.data
+const loadingRegister = ref(false)
 
+const register = async () => {
+  const headers = {
+    'api-key-music': 'gIvRCn80.ZuiIqAqyTjgQp7WxmBfnwn2TN4har2Kb',
+  }
+
+  
+
+  try {
+
+    loadingRegister.value = true
+
+    const registerResponse = await axios.post('/auth/register/', {
+      username: username.value,
+      gender: gender.value,
+      email: email.value,
+      password: password.value,
+    })
+
+    const responselogin = await axios.post('/auth/token/', {
+      username: username.value,
+      password: password.value,
+    })
+
+    const { access, refresh   } = responselogin.data
+
+    const responseAuthMe = await axios.get('/auth/me/', { headers: { 'Authorization': `Bearer ${access}` } })
+
+    const user = responseAuthMe.data
+
+    let ability_view_app_web = [
+      {
+        "action": "read",
+        "subject": "AclDemo",
+      },
+      {
+        "action": "read",
+        "subject": "Auth",
+      },
+    ]
+    if (user.is_active){
+      ability_view_app_web.push({
+        "action": "manage",
+        "subject": "all",
+      })
+    }
+
+    let userAbilities = [...ability_view_app_web]
+
+    currentUserStore.setCurrentUser(user)
     localStorage.setItem('userAbilities', JSON.stringify(userAbilities))
     ability.update(userAbilities)
-    localStorage.setItem('userData', JSON.stringify(userData))
-    localStorage.setItem('accessToken', JSON.stringify(accessToken))
+    localStorage.setItem('userData', JSON.stringify(user))
+    localStorage.setItem('accessToken', JSON.stringify(access))
+    localStorage.setItem('refreshToken', JSON.stringify(refresh))
+
     if (route.query.to)
       router.replace(String(route.query.to))
     else
       router.replace('/')
     
-    return null
-  }).catch(e => {
-    const { errors: formErrors } = e.response.data
+  } catch (error) {   
+    if (error) {
+      let messageError = ""
 
-    errors.value = formErrors
-    console.error(e.response.data)
-  })
+      if (error.response.status == 400) {
+
+        Object.keys(error.response.data).forEach(function(propiedad) {
+          messageError =  '👉 ' + error.response.data[propiedad]
+        })
+      
+      }
+
+      showToastError(messageError)
+    }else{
+      showToastError(null, 'error desconocido')
+    }
+  
+
+  } finally {
+    loadingRegister.value = false
+  }
 }
 
-const imageVariant = useGenerateImageVariant(authV2RegisterIllustrationLight, authV2RegisterIllustrationDark, authV2RegisterIllustrationBorderedLight, authV2RegisterIllustrationBorderedDark, true)
+
+const imageVariant = useGenerateImageVariant(imageMundoMusic, imageMundoMusic, authV2RegisterIllustrationBorderedLight, imageMundoMusic, true)
 const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
 const isPasswordVisible = ref(false)
 
@@ -73,6 +145,27 @@ const onSubmit = () => {
       register()
   })
 }
+
+const generos = [
+  {
+    title: 'Masculino',
+    value: 'M',
+    icon: 'tabler-gender-male',
+    color: 'primary',
+  },
+  {
+    title: 'Femenino',
+    value: 'F',
+    icon: 'tabler-gender-female',
+    color: 'error',
+  },
+  {
+    title: 'Otro',
+    value: 'O',
+    icon: 'tabler-gender-agender',
+    color: 'warning',
+  },
+]
 </script>
 
 <template>
@@ -87,7 +180,7 @@ const onSubmit = () => {
       <div class="position-relative auth-bg rounded-lg w-100 ma-8 me-0">
         <div class="d-flex align-center justify-center w-100 h-100">
           <VImg
-            max-width="441"
+            max-width="650"
             :src="imageVariant"
             class="auth-illustration mt-16 mb-2"
           />
@@ -135,6 +228,7 @@ const onSubmit = () => {
                   v-model="username"
                   :rules="[requiredValidator, alphaDashValidator]"
                   label="Username"
+                  placeholder="WagnerVC"
                 />
               </VCol>
 
@@ -145,7 +239,30 @@ const onSubmit = () => {
                   :rules="[requiredValidator, emailValidator]"
                   label="Email"
                   type="email"
+                  placeholder="example@gmail.com"
                 />
+              </VCol>
+
+              <!-- Género -->
+              <VCol cols="12">
+                <VSelect
+                  v-model="gender"
+                  :items="generos"
+                  item-title="title"
+                  item-value="value"
+                  label="Seleccionar Género"
+                >
+                  <template #selection="{ item }">
+                    <VChip>
+                      <VIcon
+                        size="20"
+                        :color="item.raw.color"
+                        :icon="item.raw.icon"
+                      />
+                      <span>{{ item.title }}</span>
+                    </VChip>
+                  </template>
+                </VSelect>
               </VCol>
 
               <!-- password -->
@@ -181,8 +298,12 @@ const onSubmit = () => {
                 <VBtn
                   block
                   type="submit"
+                  variant="tonal"
+                  color="success"
+                  :disabled="loadingRegister"
+                  :loading="loadingRegister"
                 >
-                  Sign up
+                  Inscribirse
                 </VBtn>
               </VCol>
 
@@ -191,30 +312,13 @@ const onSubmit = () => {
                 cols="12"
                 class="text-center text-base"
               >
-                <span>Already have an account?</span>
+                <span>¿Ya tienes una cuenta?</span>
                 <RouterLink
                   class="text-primary ms-2"
                   :to="{ name: 'login' }"
                 >
-                  Sign in instead
+                  Iniciar sesión
                 </RouterLink>
-              </VCol>
-
-              <VCol
-                cols="12"
-                class="d-flex align-center"
-              >
-                <VDivider />
-                <span class="mx-4">or</span>
-                <VDivider />
-              </VCol>
-
-              <!-- auth providers -->
-              <VCol
-                cols="12"
-                class="text-center"
-              >
-                <AuthProvider />
               </VCol>
             </VRow>
           </VForm>

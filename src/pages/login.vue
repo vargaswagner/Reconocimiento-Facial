@@ -17,13 +17,14 @@ import authV2LoginIllustrationBorderedLight from '@/assets/images/pages/auth-v2-
 
 // import authV2LoginIllustrationDark from '@/assets/images/pages/persons-music.png'
 // import authV2LoginIllustrationLight from '@/assets/images/pages/persons-music.png'
-import authV2MaskDark from '@/assets/images/pages/misc-mask-dark.png'
-import authV2MaskLight from '@/assets/images/pages/misc-mask-light.png'
+import authV2MaskDark from '@/assets/images/pages/auth-v2-reset-password-illustration-light.png'
+import authV2MaskLight from '@/assets/images/pages/auth-v2-reset-password-illustration-dark.png'
 
 const currentUserStore = useCurrentUserStore()
 
-const authThemeImg = useGenerateImageVariant(authV2LoginIllustrationBorderedLight, authV2LoginIllustrationBorderedDark, true)
+// const authThemeImg = useGenerateImageVariant(authV2LoginIllustrationBorderedLight, authV2LoginIllustrationBorderedDark, true)
 const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
+const authLoginImage = useGenerateImageVariant(authV2LoginIllustrationBorderedDark, authV2LoginIllustrationBorderedLight)
 const isPasswordVisible = ref(false)
 const route = useRoute()
 const router = useRouter()
@@ -35,8 +36,8 @@ const errors = ref({
 })
 
 const refVForm = ref()
-const username = ref('wagner')
-const password = ref('Wagner@123')
+const username = ref('')
+const password = ref('')
 const rememberMe = ref(false)
 const loadingLogin = ref(false)
 
@@ -52,8 +53,6 @@ const login = async () => {
     const { access, refresh, user } = r.data
 
     // const userAccessModules = setUserAccessModules(user)
-
-    // console.log('userAccessModules', userAccessModules)
 
     // let userAbilities = userAccessModules.map(item=> {
     //   const { action, subject } = item.access
@@ -82,7 +81,7 @@ const login = async () => {
     
     ability.update(userAbilities)
     localStorage.setItem('userAbilities', JSON.stringify(userAbilities))
-    console.log('localStorage', localStorage)
+
     localStorage.setItem('accessToken', JSON.stringify(access))
     localStorage.setItem('refreshToken', JSON.stringify(refresh))
     setTimeout(()=>loadingLogin.value = false, 7500)
@@ -125,16 +124,11 @@ const onSubmit = () => {
       <div class="position-relative auth-bg rounded-lg w-100 ma-8 me-0">
         <div class="d-flex align-center justify-center w-100 h-100">
           <VImg
-            max-width="605"
-            :src="authThemeImg"
+            max-width="340"
+            :src="authThemeMask"
             class="auth-illustration mt-16 mb-2"
           />
         </div>
-
-        <VImg
-          :src="authThemeMask"
-          class="auth-footer-mask"
-        />
       </div>
     </VCol>
 
@@ -149,13 +143,8 @@ const onSubmit = () => {
         class="mt-12 mt-sm-0 pa-4"
       >
         <VCardText>
-          <VNodeRenderer
-            :nodes="themeConfig.app.logo"
-            class="mb-6"
-          />
-
           <h5 class="text-h5 font-weight-semibold mb-1">
-            Welcome to {{ themeConfig.app.title }}! 👋🏻
+            Welcome to Video Detection! 👋🏻
           </h5>
           <p class="mb-0">
             Please sign-in to your account and start the adventure
@@ -240,22 +229,6 @@ const onSubmit = () => {
                 >
                   Create an account
                 </RouterLink>
-              </VCol>
-              <VCol
-                cols="12"
-                class="d-flex align-center"
-              >
-                <VDivider />
-                <span class="mx-4">or</span>
-                <VDivider />
-              </VCol>
-
-              <!-- auth providers -->
-              <VCol
-                cols="12"
-                class="text-center"
-              >
-                <AuthProvider />
               </VCol>
             </VRow>
           </VForm>
